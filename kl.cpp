@@ -217,30 +217,33 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	}
 }
 
-void BFSTraverse(Graph *G) {
+void BFSTraverse(Graph *G, Vertex *vlist[]) {
     // Mark all the vertices as not visited
     bool *visited = new bool[G->V + 1];
     queue<int> q;
     Vertex *v;
+    int V = G->V;
 
     // Initialize visited arrays
-    for(int i = 0; i < G->V + 1; i++) {
+    for(int i = 0; i <= V; i++) {
         visited[i] = false;
     }
 
-    for(int i = 1; i <= G->V; i++) {
-        if(visited[i] == false) {
-            visited[i] = true;
-            v = G->adj_list[i];
-            cout << v->rank << " ";
-            q.push(i);
+    for(int i = 1; i <= V; i++) {
+        v = vlist[i];
+        int label = v->label;
+        if(visited[label] == false) {
+            visited[label] = true;
+            cout << label << " ";
+            q.push(label);
             while(!q.empty()) {
-                q.pop(i);
+                q.pop(label);
+                v = G->adj_list[label];
                 for(int j = 0; j < v->degree; j++) {
-                    int label = v->list[j][0];
-                    if(visited[label] == false) {
-                        visited[label] = true;
-                        cout << G->adj_list[label]->rank << " ";
+                    int adj_label = v->list[j][0];
+                    if(visited[adj_label] == false) {
+                        visited[adj_label] = true;
+                        cout << adj_label << " ";
                         q.push(label);
                     }
                 }
@@ -253,9 +256,9 @@ bool sort_by_degree(Vertex *lv, Vertex *rv) {
     return (lv->degree) > (rv->degree);
 }
 
-void lazy_k_partitioning(Graph *G) {
-    sort(G->adj_list + 1, G->adj_list + G->V, sort_by_degree);
-
+void lazy_k_partitioning(Vertex *vlist[], int V) {
+    sort(vlist + 1, vlist + V, sort_by_degree);
+    BFSTraverse(G, vlist);
 }
 
 /*
@@ -323,8 +326,8 @@ int main(int argc, char ** argv){
 				epair[line_n][1] = num2 ;
 				v1 = vlist[num1] ;
 				v2 = vlist[num2] ;
-				add_adjacency_vertex(v1, v2->label, v2->weight) ;
-				add_adjacency_vertex(v2, v1->label, v2->weight) ;
+				add_adjacency_vertex(v1, v2->label, 1) ;
+				add_adjacency_vertex(v2, v1->label, 1) ;
 				vlist[v1->label] = v1 ;
 				vlist[v2->label] = v2 ;
 			}

@@ -12,7 +12,6 @@ Vertex *new_vertex(int label){
 	Vertex *v = (Vertex *)malloc( sizeof (Vertex)) ;
 	v->degree = 0;
 	v->label = label;
-    v->rank = 0;
 	v->list = NULL;
 	return  v ;
 }
@@ -26,7 +25,6 @@ Graph *new_graph(int V, Vertex *vertex_list[]){
 	G->edge_pair =  (int (*)[2])calloc(1, sizeof *(G->edge_pair)) ;
 	for( i = 0; i < G->V ; i++){//Make the adjacency list sorted by the label
 		G->adj_list[ vertex_list[i]->label ] = vertex_list[ i  ] ;
-        G->adj_list[ vertex_list[i]->rank ] = vertex_list[i];
 	}
 	G->adj_list[0] = new_vertex(0) ;
 	memset(G->edge_list, 0, sizeof *(G->edge_list)) ;
