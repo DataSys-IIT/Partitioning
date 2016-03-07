@@ -12,6 +12,7 @@ Vertex *new_vertex(int label){
 	Vertex *v = (Vertex *)malloc( sizeof (Vertex)) ;
 	v->degree = 0;
 	v->label = label;
+    v->rank = 0;
 	v->list = NULL;
 	return  v ;
 }
@@ -25,6 +26,7 @@ Graph *new_graph(int V, Vertex *vertex_list[]){
 	G->edge_pair =  (int (*)[2])calloc(1, sizeof *(G->edge_pair)) ;
 	for( i = 0; i < G->V ; i++){//Make the adjacency list sorted by the label
 		G->adj_list[ vertex_list[i]->label ] = vertex_list[ i  ] ;
+        G->adj_list[ vertex_list[i]->rank ] = vertex_list[i];
 	}
 	G->adj_list[0] = new_vertex(0) ;
 	memset(G->edge_list, 0, sizeof *(G->edge_list)) ;
@@ -44,7 +46,7 @@ void free_graph(Graph *G){
 	if(G == NULL){return ;}
 	if(G->adj_list != NULL){
 		for(i = 0; i <= G->V; i++){
-			free_vertex(G->adj_list[i]); 
+			free_vertex(G->adj_list[i]);
 		}
 		free(G->adj_list) ;
 	}
@@ -84,7 +86,7 @@ void pg(Graph *g, FILE *fp){
 	generate a random graph with V vertices, and every vertex has exact degree of D
 */
 Graph *gen(int D, int V){
-	Vertex 
+	Vertex
 	*(*sets)[V] = (Vertex *(*)[V])calloc(3, sizeof *sets),
 	*v1 = NULL, *v2 = NULL;
 	int dgr[3] = {-1, 0, 1}, len[3] = {0, 0, 0}, min_index, new_index, i ;
@@ -108,13 +110,13 @@ Graph *gen(int D, int V){
 			}
 		}else{
 			new_index = ! (min_index - 1) + 1 ;
-			v -= len[min_index] ;	
+			v -= len[min_index] ;
 			v1 = sets[new_index][v] ;
 			memmove(sets[new_index] + v, sets[new_index] + v + 1, (len[new_index] - v - 1) * sizeof(Vertex *)) ;
 			len[new_index] -= 1 ;//pop (v)
 		}
 		l = D - v1->degree ;
-		pl = 0 ;//Pop length 
+		pl = 0 ;//Pop length
 		while(l > 0 && dgr[min_index] < D){
 			int untouched_len = len[min_index] - pl, weight ;
 			new_index = ! (min_index - 1) + 1 ;
@@ -135,7 +137,7 @@ Graph *gen(int D, int V){
 						len[new_index] += 1 ;
 					}
 				}
-				dgr[new_index] = dgr[min_index] + 1 ;				
+				dgr[new_index] = dgr[min_index] + 1 ;
 				l = 0 ;
 			}else{
 				for (i = 0; i < untouched_len; i++){
@@ -181,7 +183,7 @@ void edges(Graph * G, FILE *output){
 		if( output == NULL){
 			return ;
 		}else{
-			fprintf (output, "%d  %d\n", G->V, G->E) ;		
+			fprintf (output, "%d  %d\n", G->V, G->E) ;
 			for(i = 1; i <= G->E; i++){
 				fprintf(output, "%d %d\n", G->edge_pair[i][0], G->edge_pair[i][1]) ;
 			}
@@ -192,12 +194,12 @@ void edges(Graph * G, FILE *output){
 			for( j = 0; j < v->degree; j++){
 				if(v->label < v->list[j][0]){
 					G->E += 1 ;
-					G->edge_list = (int (*)[2])realloc(G->edge_list, (G->E + 1)* sizeof *(G->edge_list)); 		
-					G->edge_list[ G->E ][0] = G->E ;	
-					G->edge_list[ G->E ][1] = v->list[j][1] ;	
-					G->edge_pair = (int (*)[2])realloc(G->edge_pair, (G->E + 1)* sizeof *(G->edge_pair)); 		
-					G->edge_pair[ G->E ][0] = v->label ;	
-					G->edge_pair[ G->E ][1] = v->list[j][0] ;	
+					G->edge_list = (int (*)[2])realloc(G->edge_list, (G->E + 1)* sizeof *(G->edge_list));
+					G->edge_list[ G->E ][0] = G->E ;
+					G->edge_list[ G->E ][1] = v->list[j][1] ;
+					G->edge_pair = (int (*)[2])realloc(G->edge_pair, (G->E + 1)* sizeof *(G->edge_pair));
+					G->edge_pair[ G->E ][0] = v->label ;
+					G->edge_pair[ G->E ][1] = v->list[j][0] ;
 				}
 			}
 		}
