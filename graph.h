@@ -11,8 +11,9 @@
 typedef struct _Vertex{
 	int degree ;
 	int label ;
-	int rank ;//for use with Make-Set-Find 
-	int (*list)[2];//[label, weight] 
+	int rank ;//for use with Make-Set-Find
+    int group;
+	int (*list)[2];//[label, weight]
 	struct _Vertex *parent ;//for use with Make-Set-Find
 } Vertex;
 

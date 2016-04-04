@@ -13,6 +13,7 @@ Vertex *new_vertex(int label){
 	v->degree = 0;
 	v->label = label;
 	v->list = NULL;
+    v->group = 0;
 	return  v ;
 }
 Graph *new_graph(int V, Vertex *vertex_list[]){

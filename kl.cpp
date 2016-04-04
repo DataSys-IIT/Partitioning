@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
 #include <algorithm>
 #include <queue>
 #include "graph.h"
@@ -73,6 +74,8 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
  * Using the Balanced Tree structure to store the pair set
  * thus making the retrival of min pair more efficiently
  */
+
+
 void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	int minus_inf = (int)(~0) << (sizeof(int) * 8 - 1), V = G->V  ;
 
@@ -81,7 +84,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	 * DONOT use stack. The size of these arrays can be very large
 	 * and will cause stack overflow.
 	 */
-	int
+    int
 	*d = (int *)calloc(V + 1, sizeof *d ), //d[V + 1]
 	(*cost)[V + 1] = (int (*)[V + 1])calloc(V + 1, sizeof *cost),//cost[V + 1][V + 1],
 	*gsum = (int *)calloc(V / 2 + 1, sizeof *gsum), //gsum[V / 2 + 1],
@@ -217,6 +220,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	}
 }
 
+
 void BFSTraverse(Graph *G, Vertex *vlist[]) {
     // Mark all the vertices as not visited
     bool *visited = new bool[G->V + 1];
@@ -237,7 +241,8 @@ void BFSTraverse(Graph *G, Vertex *vlist[]) {
             cout << label << " ";
             q.push(label);
             while(!q.empty()) {
-                q.pop(label);
+                label = q.front();
+                q.pop();
                 v = G->adj_list[label];
                 for(int j = 0; j < v->degree; j++) {
                     int adj_label = v->list[j][0];
@@ -256,9 +261,11 @@ bool sort_by_degree(Vertex *lv, Vertex *rv) {
     return (lv->degree) > (rv->degree);
 }
 
-void lazy_k_partitioning(Vertex *vlist[], int V) {
+void lazy_k_partitioning(Graph *G, Vertex *vlist[], int V) {
     sort(vlist + 1, vlist + V, sort_by_degree);
+    cout << "Sorting complete based on degree!" << endl;
     BFSTraverse(G, vlist);
+    cout << "Done traversing!" << endl;
 }
 
 /*
@@ -343,6 +350,7 @@ int main(int argc, char ** argv){
 		G->edge_pair = epair ;
 		G->adj_list = vlist ;
 
+        lazy_k_partitioning(G, vlist, V);
 		a = (Vertex **)calloc(V / 2, sizeof(Vertex *));
 		for(i = 0; i < V / 2; i++){
 			a[i] = G->adj_list[i + 1] ;
@@ -351,6 +359,8 @@ int main(int argc, char ** argv){
 		for(i = 0; i < V - V / 2; i++){
 			b[i] = G->adj_list[V / 2 + i + 1] ;
 		}
+
+        /*
 		printf("Initial cut size: %d \n", cut(G, a, b, NULL)) ;
 		partition(G, a, b);
 		printf("partitioned \n") ;
@@ -363,6 +373,7 @@ int main(int argc, char ** argv){
 			printf("%d ", b[i]->label) ;
 		}
 		printf("\ncut size: %d \n", cut(G, a, b, stdout)) ;
+        */
 		free(a) ;
 		free(b) ;
 		free_graph (G);
