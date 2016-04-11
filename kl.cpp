@@ -1,12 +1,14 @@
 /***************************************
     2014 Chaofan Li <chaof@tamu.edu>
-***************************************/
+    2016 Yuchao Zhou <yzhou110@hawk.iit.edu>
+ ***************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
 #include <algorithm>
 #include <queue>
+#include <vector>
 #include "graph.h"
 
 using namespace std;
@@ -220,13 +222,34 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	}
 }
 
+void print_atoms(vector<vector<Vertex> > atoms) {
+    cout << "********************************************************" << endl;
+    int rows = atoms.size();
+    for(int i = 0; i < rows; i++) {
+        int columns= atoms[i].size();
+        for(int j = 0; j < columns; j++) {
+            cout << atoms[i][j].label << "\t";
+        }
+        cout << endl;
+    }
+    cout << "********************************************************" << endl;
+}
 
-void BFSTraverse(Graph *G, Vertex *vlist[]) {
+void print_vlist(Vertex *vlist[], int V) {
+    for(int i = 0; i < V + 1; i++) {
+        printf("Label of the vlist[%d] = %d\n", i, vlist[i]->label);
+    }    
+}
+
+vector<vector<Vertex> > BFS_Partition(Graph *G, Vertex *vlist[], Vertex *vlist_copy) {
+    static int group_id = 0;
+
     // Mark all the vertices as not visited
     bool *visited = new bool[G->V + 1];
     queue<int> q;
     Vertex *v;
     int V = G->V;
+    vector<vector<Vertex> > atoms;
 
     // Initialize visited arrays
     for(int i = 0; i <= V; i++) {
@@ -238,23 +261,43 @@ void BFSTraverse(Graph *G, Vertex *vlist[]) {
         int label = v->label;
         if(visited[label] == false) {
             visited[label] = true;
-            cout << label << " ";
+            vlist[i]->group = group_id;
+            vlist_copy[label].group = group_id;
+            group_id++;
+            //cout << label << endl;
+
+            vector<Vertex> atom;
+            atom.push_back(*v);
+            atoms.push_back(atom);
+
             q.push(label);
             while(!q.empty()) {
                 label = q.front();
                 q.pop();
-                v = G->adj_list[label];
+                //v = G->adj_list[label];
+                v = &(vlist_copy[label]);
                 for(int j = 0; j < v->degree; j++) {
                     int adj_label = v->list[j][0];
                     if(visited[adj_label] == false) {
                         visited[adj_label] = true;
-                        cout << adj_label << " ";
-                        q.push(label);
+                        //G->adj_list[adj_label]->group = v->group;
+                        vlist_copy[adj_label].group = v->group;
+                        //cout << adj_label << endl;
+                        //atoms[v->group].push_back(*(G->adj_list[adj_label]));
+                        atoms[v->group].push_back(vlist_copy[adj_label]);
+                        if(atoms[v->group].size() >= MIN_PARTITION_SIZE) {
+                            //print_atoms(atoms);
+                            queue<int> empty;
+                            swap(q, empty);
+                            break;
+                        }
+                        q.push(adj_label);
                     }
                 }
             }
         }
     }
+    return atoms;
 }
 
 bool sort_by_degree(Vertex *lv, Vertex *rv) {
@@ -262,10 +305,19 @@ bool sort_by_degree(Vertex *lv, Vertex *rv) {
 }
 
 void lazy_k_partitioning(Graph *G, Vertex *vlist[], int V) {
+    print_vlist(vlist, V);
+    Vertex *vlist_copy = new Vertex[V + 1];
+    for(int i = 0; i <= V; i++) {
+        vlist_copy[i] = *vlist[i];
+        cout << vlist_copy[i].label << "\t";
+    }
+    cout << endl;
     sort(vlist + 1, vlist + V, sort_by_degree);
     cout << "Sorting complete based on degree!" << endl;
-    BFSTraverse(G, vlist);
-    cout << "Done traversing!" << endl;
+    print_vlist(vlist, V);
+    vector<vector<Vertex> > atoms = BFS_Partition(G, vlist, vlist_copy);
+    cout << endl << "Done traversing!" << endl;
+    print_atoms(atoms);
 }
 
 /*
@@ -290,8 +342,9 @@ int main(int argc, char ** argv){
 		size_t len = 0;
 		ssize_t read;
 		int line_n = 0, V, E, (*elist)[2], i, j, (*epair)[2] ;
-		Vertex **vlist, **a, **b ;
+		Vertex **vlist, **a, **b, **vlist_clone;
 		Graph *G, *G2 ;
+                //G = new_graph(0, NULL);
 		/*
 		 *Generate input by itself
  		 *
@@ -317,13 +370,22 @@ int main(int argc, char ** argv){
 			if(line_n == 0){
 				V = num1 ;
 				E = num2 ;
-				vlist = (Vertex **)calloc(V + 1, sizeof(Vertex *)) ;
-				elist = (int (*)[2])calloc(E + 1, sizeof *elist) ;
+				vlist = (Vertex **)calloc(V + 1, sizeof(Vertex*)); 
+                                //G->adj_list = (Vertex **)malloc((V + 1) * sizeof(Vertex*));
+                                elist = (int (*)[2])calloc(E + 1, sizeof *elist) ;
 				epair = (int (*)[2])calloc(E + 1, sizeof *epair) ;
 				memset(elist, 0, sizeof *elist) ;
 				memset(epair, 0, sizeof *epair) ;
-				for(i = 0; i <= V; i++){
+                                /*
+                                G->V = V;
+                                G->E = E;
+                                free(G->edge_list);
+                                free(G->adj_list);
+                                free(G->edge_pair);
+                                */
+                                for(i = 0; i <= V; i++){
 					vlist[i] = new_vertex(i);
+                                        //G->adj_list[i] = new_vertex(i);
 				}
 			}else{
 				Vertex *v1, *v2 ;
@@ -337,20 +399,33 @@ int main(int argc, char ** argv){
 				add_adjacency_vertex(v2, v1->label, 1) ;
 				vlist[v1->label] = v1 ;
 				vlist[v2->label] = v2 ;
+                                //G->adj_list[v1->label] = v1;
+                                //G->adj_list[v2->label] = v2;
 			}
 			line_n += 1 ;
 		}
-		G = new_graph(0, NULL);
+		
+                G = new_graph(0, NULL);
 		G->V = V ;
 		G->E = E ;
 		free(G->edge_list);
 		free(G->adj_list);
 		free(G->edge_pair) ;
-		G->edge_list = elist ;
+		
+                G->edge_list = elist ;
 		G->edge_pair = epair ;
 		G->adj_list = vlist ;
-
-        lazy_k_partitioning(G, vlist, V);
+                //memcpy(G->adj_list, vlist, (V + 1) * sizeof(Vertex*));
+                /*
+                for(i = 0; i <= V; i++) {
+                    G->adj_list[i] = new_vertex(i);
+                    //G->adj_list[i] = vlist[i];
+                    memcpy(G->adj_list[i], vlist[i], sizeof(Vertex));
+                } 
+                */               
+               
+                //memcpy(vlist_clone, vlist, (V + 1) * sizeof(Vertex*));
+                lazy_k_partitioning(G, vlist, V);
 		a = (Vertex **)calloc(V / 2, sizeof(Vertex *));
 		for(i = 0; i < V / 2; i++){
 			a[i] = G->adj_list[i + 1] ;
