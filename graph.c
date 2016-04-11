@@ -1,5 +1,6 @@
 /***************************************
  April 2014 Chaofan Li <chaof@tamu.edu>
+ April 2016 Yuchao Zhoub <yzhou110@hawk.iit.edu>
 ***************************************/
 #include <string.h>
 #include <math.h>

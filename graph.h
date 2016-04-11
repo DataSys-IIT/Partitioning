@@ -1,11 +1,12 @@
 /***************************************
  April 2014 Chaofan Li <chaof@tamu.edu>
+ April 2016 Yuchao Zhou <yzhou110@hawk.iit.edu>
 ***************************************/
 #ifndef __GRAPH_H__
 #define __GRAPH_H__
 
 #define MAX_EDGE_WEIGHT 5000000
-#define MIN_PARTITION_SIZE 3
+#define MIN_PARTITION_SIZE 100
 #define MAX_PARTITION_SIZE 10
 #include <stdio.h>
 
